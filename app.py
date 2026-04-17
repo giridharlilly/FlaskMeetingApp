@@ -2,23 +2,18 @@ import os
 import uuid
 import json
 import datetime
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 from ad_access import enforce_access
 import psycopg2
 import psycopg2.extras
-
+ 
 load_dotenv()
-
-# Ensure templates directory resolves correctly in Posit Connect
-template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
-app = Flask(__name__, template_folder=template_dir)
+ 
+app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-change-in-prod")
 enforce_access(app)
-
-# Expose as 'application' for WSGI compatibility
-application = app
-
+ 
 DB_CONFIG = {
     "host": os.getenv("DB_HOST"),
     "database": os.getenv("DB_NAME"),
@@ -26,21 +21,21 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD"),
     "port": os.getenv("DB_PORT", 5432),
 }
-
+ 
 SELECT_COLUMNS = """
     id, attandance_id, user_name, user_email, node_id, dept_id,
     role, function, attandance_expectation, meeting_date,
     attendee_type, primary_node_yn, active_yn,
     created_by, created_date, modified_by, modified_date
 """
-
-
+ 
+ 
 def get_db_connection():
     conn = psycopg2.connect(**DB_CONFIG)
     conn.autocommit = True
     return conn
-
-
+ 
+ 
 def serialize_row(row):
     """Convert a RealDictCursor row to a JSON-safe dict."""
     out = {}
@@ -52,8 +47,8 @@ def serialize_row(row):
         else:
             out[key] = val
     return out
-
-
+ 
+ 
 # ---------- Page ----------
 @app.route("/")
 def index():
@@ -69,15 +64,11 @@ def index():
         rows = [serialize_row(r) for r in cur.fetchall()]
         cur.close()
         conn.close()
-        resp = make_response(render_template("index.html", rows_json=json.dumps(rows), error=None))
-        resp.headers["Content-Type"] = "text/html"
-        return resp
+        return render_template("index.html", rows_json=json.dumps(rows), error=None)
     except Exception as e:
-        resp = make_response(render_template("index.html", rows_json="[]", error=str(e)))
-        resp.headers["Content-Type"] = "text/html"
-        return resp
-
-
+        return render_template("index.html", rows_json="[]", error=str(e))
+ 
+ 
 # ---------- API: List ----------
 @app.route("/api/records", methods=["GET"])
 def api_list_records():
@@ -96,8 +87,8 @@ def api_list_records():
         return jsonify(rows)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
+ 
+ 
 # ---------- API: Create ----------
 @app.route("/api/records", methods=["POST"])
 def api_create_record():
@@ -136,8 +127,8 @@ def api_create_record():
         return jsonify(row), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
+ 
+ 
 # ---------- API: Update ----------
 @app.route("/api/records/<record_id>", methods=["PUT"])
 def api_update_record(record_id):
@@ -178,8 +169,8 @@ def api_update_record(record_id):
         return jsonify(serialize_row(row))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
+ 
+ 
 # ---------- API: Delete ----------
 @app.route("/api/records/<record_id>", methods=["DELETE"])
 def api_delete_record(record_id):
@@ -198,7 +189,8 @@ def api_delete_record(record_id):
         return jsonify({"success": True}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
+ 
+ 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+ 
