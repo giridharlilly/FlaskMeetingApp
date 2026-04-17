@@ -2,11 +2,11 @@
   "version": 1,
   "locale": "C.UTF-8",
   "metadata": {
-    "appmode": "python-api",
+    "appmode": "python-dash",
     "entrypoint": "app"
   },
   "python": {
-    "version": "3.12.3",
+    "version": "3.12.4",
     "package_manager": {
       "name": "pip",
       "version": "24.0",
@@ -15,22 +15,19 @@
   },
   "files": {
     "requirements.txt": {
-      "checksum": "8a82b79b19f03a186c17a6296c9cf4ca"
+      "checksum": "0"
     },
     ".gitignore": {
-      "checksum": "b0c46e15c4bedcc2e85ff35f477405a8"
+      "checksum": "0"
     },
     "ad_access.py": {
-      "checksum": "f97efd15cd5805480f6131b9894fe1da"
+      "checksum": "0"
     },
     "app.py": {
-      "checksum": "4efb5c1db8c876b6354348fdf341511a"
+      "checksum": "0"
     },
     "gunicorn.conf.py": {
-      "checksum": "271a1acb49f4e51f2f375065fc13ac22"
-    },
-    "templates/index.html": {
-      "checksum": "c71a00065f7ff8e270728adaa6026fb7"
+      "checksum": "0"
     }
   }
 }
