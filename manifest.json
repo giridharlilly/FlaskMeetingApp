@@ -2,7 +2,7 @@
   "version": 1,
   "locale": "C.UTF-8",
   "metadata": {
-    "appmode": "python-flask",
+    "appmode": "python-api",
     "entrypoint": "app"
   },
   "python": {
