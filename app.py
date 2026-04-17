@@ -219,6 +219,8 @@ app.layout = html.Div([
             html.Div([
                 dbc.Button([html.I(className="fas fa-sync me-1"), "Refresh"], id="refresh-btn",
                     color="light", size="sm", className="me-2", style={"fontSize": "13px"}),
+                dbc.Button([html.I(className="fas fa-trash me-1"), "Delete Selected"], id="delete-btn",
+                    color="danger", size="sm", className="me-2", disabled=True, style={"fontSize": "13px"}),
                 dbc.Button([html.I(className="fas fa-plus me-1"), "Add Row"], id="add-btn",
                     size="sm", style={"backgroundColor": HEADER_BG, "border": "none", "fontSize": "13px"}),
             ]),
@@ -423,15 +425,23 @@ def save_record(n, record_id, user_name, user_email, node_id, dept_id, role,
 def close_modal(n): return False
 
 
-# Delete — ask confirmation
-@callback([Output("del-modal", "is_open"), Output("del-record-id", "data")],
-    Input("main-table", "selected_rows"), State("main-table", "data"), prevent_initial_call=True)
-def select_for_delete(selected, data):
-    # We don't auto-open delete on select — user must click delete button
-    return dash.no_update, dash.no_update
+# Enable/disable Delete button based on row selection
+@callback(Output("delete-btn", "disabled"),
+    Input("main-table", "selected_rows"), prevent_initial_call=True)
+def toggle_delete_btn(selected):
+    return not (selected and len(selected) > 0)
 
-# Add a delete button that appears when row is selected — handled via keyboard Delete key
-# For now, right-click context or a delete button column approach
+
+# Delete — open confirmation when Delete Selected is clicked
+@callback([Output("del-modal", "is_open"), Output("del-record-id", "data")],
+    Input("delete-btn", "n_clicks"),
+    [State("main-table", "selected_rows"), State("main-table", "data")],
+    prevent_initial_call=True)
+def ask_delete(n, selected, data):
+    if not selected or not data:
+        return False, None
+    row = data[selected[0]]
+    return True, row.get("id")
 
 
 # Confirm delete
