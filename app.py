@@ -2,7 +2,7 @@ import os
 import uuid
 import json
 import datetime
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, make_response
 from dotenv import load_dotenv
 from ad_access import enforce_access
 import psycopg2
@@ -10,9 +10,14 @@ import psycopg2.extras
 
 load_dotenv()
 
-app = Flask(__name__)
+# Ensure templates directory resolves correctly in Posit Connect
+template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-change-in-prod")
 enforce_access(app)
+
+# Expose as 'application' for WSGI compatibility
+application = app
 
 DB_CONFIG = {
     "host": os.getenv("DB_HOST"),
@@ -64,9 +69,13 @@ def index():
         rows = [serialize_row(r) for r in cur.fetchall()]
         cur.close()
         conn.close()
-        return render_template("index.html", rows_json=json.dumps(rows), error=None)
+        resp = make_response(render_template("index.html", rows_json=json.dumps(rows), error=None))
+        resp.headers["Content-Type"] = "text/html"
+        return resp
     except Exception as e:
-        return render_template("index.html", rows_json="[]", error=str(e))
+        resp = make_response(render_template("index.html", rows_json="[]", error=str(e)))
+        resp.headers["Content-Type"] = "text/html"
+        return resp
 
 
 # ---------- API: List ----------
